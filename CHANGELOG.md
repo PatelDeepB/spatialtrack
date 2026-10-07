@@ -5,6 +5,13 @@ This changelog helps track every modification, decision, and milestone.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.0.1] - Streamlit Path Resolution and Reliability Fix
+
+### Fixed
+- **Streamlit Script Environment Resolution (`app/streamlit_app.py`, `app/components/config_sidebar.py`):**
+  - Added repository root path resolution directly into `sys.path` prior to internal imports, resolving `ModuleNotFoundError: No module named 'app'`.
+  - Updated calibration, model, and demo clip asset paths in `config_sidebar.py` to resolve absolute paths relative to repository root.
+  - Verified 68 unit and integration tests passing.
 
 ## [1.0.0] - Phase 7: Documentation, CI/CD, and Open-Source Polish (Completed)
 

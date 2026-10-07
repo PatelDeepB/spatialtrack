@@ -1,8 +1,14 @@
 """Interactive Streamlit Web Application for SpatialTrack."""
 
 import io
-import tempfile
 from pathlib import Path
+import sys
+import tempfile
+
+# Ensure repository root is on sys.path so 'app' and 'spatialtrack' packages resolve
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 import cv2
 import streamlit as st

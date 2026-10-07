@@ -15,6 +15,9 @@ from spatialtrack.core.config import (
     VisualizationConfig,
 )
 
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
+
 
 def render_sidebar() -> tuple[SpatialTrackConfig, str, int]:
     """Render interactive sidebar controls and return configured SpatialTrackConfig.
@@ -30,8 +33,8 @@ def render_sidebar() -> tuple[SpatialTrackConfig, str, int]:
         "Max Frames to Process", min_value=10, max_value=150, value=60, step=10
     )
 
-    calib_path = Path("app/assets/sample_calibration.json")
-    model_path = Path("models/yolov10n_int8.onnx")
+    calib_path = _REPO_ROOT / "app" / "assets" / "sample_calibration.json"
+    model_path = _REPO_ROOT / "models" / "yolov10n_int8.onnx"
 
     config = SpatialTrackConfig(
         detection=DetectionConfig(
@@ -58,7 +61,7 @@ def _render_source_selector() -> str:
     st.sidebar.subheader("Video Source")
     source_type = st.sidebar.radio("Select Input:", ["Demo Clip (Included)", "Upload Video File"])
 
-    sample_path = Path("app/assets/sample_traffic.mp4")
+    sample_path = _REPO_ROOT / "app" / "assets" / "sample_traffic.mp4"
     if source_type == "Demo Clip (Included)":
         return str(sample_path)
 

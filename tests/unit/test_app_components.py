@@ -2,7 +2,12 @@
 
 from unittest.mock import MagicMock, patch
 
-from app.components.config_sidebar import _render_analytics_controls, _render_detection_controls
+from app.components.config_sidebar import (
+    _render_analytics_controls,
+    _render_detection_controls,
+    _render_frame_limit_controls,
+    _render_model_selector,
+)
 from app.components.results_display import render_header, render_metrics
 
 
@@ -52,3 +57,33 @@ def test_render_header() -> None:
     # Assert
     assert mock_title.called
     assert mock_md.called
+
+
+def test_render_model_selector() -> None:
+    """Verify model selector selects correct ONNX weight paths."""
+    # Arrange & Act
+    with patch(
+        "streamlit.sidebar.selectbox",
+        return_value="YOLOv10n FP32 (High Accuracy - Recommended)",
+    ):
+        path_fp32 = _render_model_selector()
+        assert path_fp32.name == "yolov10n.onnx"
+
+    with patch("streamlit.sidebar.selectbox", return_value="YOLOv10n INT8 (Quantized)"):
+        path_int8 = _render_model_selector()
+        assert path_int8.name == "yolov10n_int8.onnx"
+
+
+def test_render_frame_limit_controls() -> None:
+    """Verify frame limit controls return None for full video and int for slice."""
+    # Arrange & Act
+    with patch("streamlit.sidebar.checkbox", return_value=True):
+        limit = _render_frame_limit_controls()
+        assert limit is None
+
+    with (
+        patch("streamlit.sidebar.checkbox", return_value=False),
+        patch("streamlit.sidebar.slider", return_value=300),
+    ):
+        limit = _render_frame_limit_controls()
+        assert limit == 300

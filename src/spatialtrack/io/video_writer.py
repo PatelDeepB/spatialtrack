@@ -1,5 +1,7 @@
 """Robust context-managed video writer wrapping OpenCV VideoWriter."""
 
+import shutil
+import subprocess
 from pathlib import Path
 from types import TracebackType
 from typing import Self
@@ -95,6 +97,8 @@ class VideoWriter:
         if self._writer is not None:
             self._writer.release()
             self._writer = None
+            if self._frame_count > 0:
+                _reencode_to_h264_if_available(self.output_path)
 
     def __enter__(self) -> Self:
         """Context manager entry point."""
@@ -108,3 +112,34 @@ class VideoWriter:
     ) -> None:
         """Context manager exit point releasing writer resources."""
         self.close()
+
+
+def _reencode_to_h264_if_available(video_path: Path) -> None:
+    """Remux or re-encode MP4 to standard H.264 format if ffmpeg is present."""
+    ffmpeg_exe = shutil.which("ffmpeg")
+    if not ffmpeg_exe or not video_path.is_file():
+        return
+
+    tmp_h264 = video_path.with_name(f"{video_path.stem}_h264{video_path.suffix}")
+    cmd = [
+        ffmpeg_exe,
+        "-y",
+        "-i",
+        str(video_path),
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-loglevel",
+        "error",
+        str(tmp_h264),
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, timeout=60)
+        if proc.returncode == 0 and tmp_h264.is_file() and tmp_h264.stat().st_size > 0:
+            tmp_h264.replace(video_path)
+        elif tmp_h264.exists():
+            tmp_h264.unlink()
+    except Exception:
+        if tmp_h264.exists():
+            tmp_h264.unlink()

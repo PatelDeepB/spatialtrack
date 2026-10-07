@@ -82,3 +82,7 @@ models/*.pt
 # OS generated
 .DS_Store
 Thumbs.db
+
+# Output artifacts
+outputs/
+

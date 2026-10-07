@@ -57,7 +57,11 @@ def render_download_section(
     csv_data: str | None,
     jsonl_data: str | None,
 ) -> None:
-    """Render export download buttons for generated artifacts."""
+    """Render export download buttons and processed video playback."""
+    if video_bytes:
+        st.subheader("Processed Video Playback")
+        st.video(video_bytes)
+
     st.subheader("Export Artifacts")
     c1, c2, c3 = st.columns(3)
 

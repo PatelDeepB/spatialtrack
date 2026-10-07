@@ -19,7 +19,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 
-def render_sidebar() -> tuple[SpatialTrackConfig, str, int]:
+def render_sidebar() -> tuple[SpatialTrackConfig, str, int | None]:
     """Render interactive sidebar controls and return configured SpatialTrackConfig.
 
     Returns:
@@ -27,23 +27,26 @@ def render_sidebar() -> tuple[SpatialTrackConfig, str, int]:
     """
     st.sidebar.title("SpatialTrack Controls")
     video_source = _render_source_selector()
+    model_path = _render_model_selector()
     det_conf, num_threads = _render_detection_controls()
     speed_limit, enable_heatmap = _render_analytics_controls()
-    max_frames = st.sidebar.slider(
-        "Max Frames to Process", min_value=10, max_value=150, value=60, step=10
-    )
+    max_frames = _render_frame_limit_controls()
+    calib_path = _render_calibration_selector(video_source)
 
-    calib_path = _REPO_ROOT / "app" / "assets" / "sample_calibration.json"
-    model_path = _REPO_ROOT / "models" / "yolov10n_int8.onnx"
-
+    track_high = max(0.20, min(0.40, det_conf))
     config = SpatialTrackConfig(
         detection=DetectionConfig(
             model_path=model_path,
             confidence_threshold=det_conf,
             num_threads=num_threads,
         ),
-        tracking=TrackingConfig(),
-        projection=ProjectionConfig(calibration_path=calib_path if calib_path.is_file() else None),
+        tracking=TrackingConfig(
+            high_threshold=track_high,
+            low_threshold=0.10,
+            min_hits=2,
+            max_age=30,
+        ),
+        projection=ProjectionConfig(calibration_path=calib_path),
         analytics=AnalyticsConfig(
             speed_limit_kmh=speed_limit,
             enable_heatmap=enable_heatmap,
@@ -54,6 +57,52 @@ def render_sidebar() -> tuple[SpatialTrackConfig, str, int]:
     )
 
     return config, video_source, max_frames
+
+
+def _render_model_selector() -> Path:
+    """Render detection model architecture and precision selector."""
+    st.sidebar.subheader("Detection Model")
+    model_choice = st.sidebar.selectbox(
+        "Model Weights:",
+        [
+            "YOLOv10n FP32 (High Accuracy - Recommended)",
+            "YOLOv10n INT8 (Quantized)",
+        ],
+        index=0,
+    )
+    if "INT8" in model_choice:
+        return _REPO_ROOT / "models" / "yolov10n_int8.onnx"
+    return _REPO_ROOT / "models" / "yolov10n.onnx"
+
+
+def _render_frame_limit_controls() -> int | None:
+    """Render video processing duration controls."""
+    st.sidebar.subheader("Processing Duration")
+    process_all = st.sidebar.checkbox("Process Entire Video", value=False)
+    if process_all:
+        return None
+    return st.sidebar.slider(
+        "Max Frames to Process", min_value=30, max_value=900, value=150, step=30
+    )
+
+
+def _render_calibration_selector(video_source: str) -> Path | None:
+    """Render calibration options for perspective projection."""
+    sample_calib = _REPO_ROOT / "app" / "assets" / "sample_calibration.json"
+    is_demo = "sample_traffic.mp4" in video_source
+
+    if is_demo:
+        return sample_calib if sample_calib.is_file() else None
+
+    st.sidebar.subheader("Camera Calibration")
+    calib_choice = st.sidebar.radio(
+        "Perspective Mapping:",
+        ["Highway Sample Grid", "Uncalibrated (Camera-Plane Only)"],
+        index=0,
+    )
+    if calib_choice == "Highway Sample Grid" and sample_calib.is_file():
+        return sample_calib
+    return None
 
 
 def _render_source_selector() -> str:
@@ -78,7 +127,7 @@ def _render_source_selector() -> str:
 
 def _render_detection_controls() -> tuple[float, int]:
     """Render detection threshold and thread sliders."""
-    st.sidebar.subheader("Detection (INT8 ONNX)")
+    st.sidebar.subheader("Detection Settings")
     conf = st.sidebar.slider(
         "Confidence Threshold", min_value=0.10, max_value=0.90, value=0.25, step=0.05
     )

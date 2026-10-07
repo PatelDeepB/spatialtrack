@@ -13,7 +13,7 @@ from spatialtrack.core.exceptions import ConfigurationError
 class DetectionConfig(BaseModel):
     """Detection model inference parameters."""
 
-    model_path: Path = Path("models/yolov10n_int8.onnx")
+    model_path: Path = Path("models/yolov10n.onnx")
     input_size: int = Field(default=640, ge=128, le=1920)
     confidence_threshold: float = Field(default=0.25, ge=0.0, le=1.0)
     nms_iou_threshold: float = Field(default=0.45, ge=0.0, le=1.0)
@@ -26,10 +26,10 @@ class DetectionConfig(BaseModel):
 class TrackingConfig(BaseModel):
     """Tracking hyperparameters for state association and lifecycle."""
 
-    high_threshold: float = Field(default=0.6, ge=0.0, le=1.0)
+    high_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
     low_threshold: float = Field(default=0.1, ge=0.0, le=1.0)
     max_age: int = Field(default=30, ge=1)
-    min_hits: int = Field(default=3, ge=1)
+    min_hits: int = Field(default=2, ge=1)
     iou_threshold: float = Field(default=0.3, ge=0.0, le=1.0)
     max_trail_length: int = Field(default=50, ge=5)
 

@@ -39,12 +39,27 @@ def main() -> None:
 
     if st.button("Run Spatial Telemetry Analysis", type="primary"):
         _run_interactive_pipeline(config, video_source, max_frames)
+    elif "latest_run" in st.session_state:
+        _render_cached_results()
+
+
+def _render_cached_results() -> None:
+    """Render previously computed results from session state."""
+    saved = st.session_state["latest_run"]
+    render_metrics(
+        fps=saved["fps"],
+        active_tracks=saved["active_tracks"],
+        speed_violations=saved["violations"],
+        mean_latency_ms=saved["mean_latency"],
+    )
+    render_event_table(saved["events"])
+    render_download_section(saved["video_bytes"], saved["csv_str"], saved["jsonl_str"])
 
 
 def _run_interactive_pipeline(
     config: SpatialTrackConfig,
     video_source: str,
-    max_frames: int,
+    max_frames: int | None,
 ) -> None:
     """Execute video processing stream and update interactive Streamlit components."""
     engine = SpatialTrackEngine(config)
@@ -56,15 +71,25 @@ def _run_interactive_pipeline(
     accumulated_records: list[SpatialRecord] = []
     temp_video_path = Path(tempfile.gettempdir()) / "st_spatialtrack_out.mp4"
 
+    latest_fps = 0.0
+    latest_tracks = 0
+    latest_violations = 0
+    latest_latency = 0.0
+
     with VideoReader(video_source) as reader:
         writer = _create_temp_writer(temp_video_path, reader, engine)
+        target_total = (
+            max_frames
+            if max_frames is not None
+            else (reader.total_frames if reader.total_frames > 0 else 100)
+        )
         try:
             frame_idx = 0
             for result in engine.process_stream(reader, max_frames=max_frames):
                 frame_idx += 1
                 progress_bar.progress(
-                    min(1.0, frame_idx / max_frames),
-                    text=f"Processing frame {frame_idx} of {max_frames} on CPU...",
+                    min(1.0, frame_idx / max(1, target_total)),
+                    text=f"Processing frame {frame_idx} of {target_total} on CPU...",
                 )
                 accumulated_events.extend(result.events)
                 accumulated_records.extend(result.spatial_records)
@@ -73,15 +98,18 @@ def _run_interactive_pipeline(
                     writer.write(result.annotated_frame)
 
                 rgb_frame = cv2.cvtColor(result.annotated_frame, cv2.COLOR_BGR2RGB)
-                frame_placeholder.image(rgb_frame, channels="RGB", use_container_width=True)
+                frame_placeholder.image(rgb_frame, channels="RGB")
 
-                violations = sum(1 for r in result.spatial_records if r.is_speed_violation)
+                latest_violations = sum(1 for r in result.spatial_records if r.is_speed_violation)
+                latest_fps = result.latency_breakdown.estimated_fps
+                latest_tracks = len(result.tracks)
+                latest_latency = result.latency_breakdown.total_ms
                 with metric_placeholder.container():
                     render_metrics(
-                        fps=result.latency_breakdown.estimated_fps,
-                        active_tracks=len(result.tracks),
-                        speed_violations=violations,
-                        mean_latency_ms=result.latency_breakdown.total_ms,
+                        fps=latest_fps,
+                        active_tracks=latest_tracks,
+                        speed_violations=latest_violations,
+                        mean_latency_ms=latest_latency,
                     )
         finally:
             if writer is not None:
@@ -89,7 +117,21 @@ def _run_interactive_pipeline(
 
     progress_bar.progress(1.0, text=f"Finished processing {frame_idx} frames!")
     render_event_table(accumulated_events)
-    _provide_downloads(temp_video_path, accumulated_records, accumulated_events)
+    video_bytes, csv_str, jsonl_str = _prepare_download_payloads(
+        temp_video_path, accumulated_records, accumulated_events
+    )
+    render_download_section(video_bytes, csv_str, jsonl_str)
+
+    st.session_state["latest_run"] = {
+        "fps": latest_fps,
+        "active_tracks": latest_tracks,
+        "violations": latest_violations,
+        "mean_latency": latest_latency,
+        "events": accumulated_events,
+        "video_bytes": video_bytes,
+        "csv_str": csv_str,
+        "jsonl_str": jsonl_str,
+    }
 
 
 def _create_temp_writer(
@@ -103,12 +145,12 @@ def _create_temp_writer(
     return VideoWriter(out_path, fps=reader.fps, frame_size=(out_w, out_h)).open()
 
 
-def _provide_downloads(
+def _prepare_download_payloads(
     video_path: Path,
     records: list[SpatialRecord],
     events: list[SpatialEvent],
-) -> None:
-    """Prepare download payloads and display download buttons."""
+) -> tuple[bytes | None, str, str]:
+    """Prepare download payloads including video bytes and structured text."""
     video_bytes = video_path.read_bytes() if video_path.exists() else None
 
     # CSV data
@@ -130,7 +172,7 @@ def _provide_downloads(
     ]
     jsonl_str = "\n".join(jsonl_lines)
 
-    render_download_section(video_bytes, csv_str, jsonl_str)
+    return video_bytes, csv_str, jsonl_str
 
 
 if __name__ == "__main__":

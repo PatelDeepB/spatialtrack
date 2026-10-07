@@ -190,25 +190,29 @@ class ByteTracker(BaseTracker):
         rem_tracks: list[STrack],
         low_dets: list[Detection],
     ) -> list[STrack]:
-        """Associate remaining confirmed tracks with low-confidence detections."""
-        confirmed_rem = [t for t in rem_tracks if t.state == TrackState.CONFIRMED]
-        other_rem = [t for t in rem_tracks if t.state != TrackState.CONFIRMED]
-
-        if confirmed_rem and low_dets:
-            track_boxes = [t.bbox for t in confirmed_rem]
+        """Associate remaining tracks with low-confidence detections."""
+        if rem_tracks and low_dets:
+            track_boxes = [t.bbox for t in rem_tracks]
             det_boxes = [d.bbox for d in low_dets]
             cost_matrix = 1.0 - compute_iou_matrix(track_boxes, det_boxes)
 
-            matches, unmatched_t, _ = linear_assignment(cost_matrix, threshold=0.5)
+            matches, unmatched_t, _ = linear_assignment(
+                cost_matrix, threshold=1.0 - self.config.iou_threshold
+            )
 
             for t_idx, d_idx in matches:
-                confirmed_rem[t_idx].update(low_dets[d_idx], self.config.max_trail_length)
+                rem_tracks[t_idx].update(low_dets[d_idx], self.config.max_trail_length)
+                if (
+                    rem_tracks[t_idx].state == TrackState.TENTATIVE
+                    and rem_tracks[t_idx].hits >= self.config.min_hits
+                ):
+                    rem_tracks[t_idx].state = TrackState.CONFIRMED
+                elif rem_tracks[t_idx].state == TrackState.LOST:
+                    rem_tracks[t_idx].state = TrackState.CONFIRMED
 
-            unmatched_tracks = [confirmed_rem[i] for i in unmatched_t] + other_rem
-        else:
-            unmatched_tracks = rem_tracks
+            return [rem_tracks[i] for i in unmatched_t]
 
-        return unmatched_tracks
+        return rem_tracks
 
     def _manage_track_lifecycle(
         self,

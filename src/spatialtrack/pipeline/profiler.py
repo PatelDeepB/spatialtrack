@@ -57,6 +57,11 @@ class StageProfiler:
             visualization_ms=lat.get("visualization", 0.0),
         )
 
+    def reset(self) -> None:
+        """Clear all historical and current latency measurements."""
+        self._measurements.clear()
+        self._current_frame_latencies.clear()
+
     def print_summary_table(self, console: Console | None = None) -> None:
         """Print formatted statistical breakdown table to rich console."""
         target_console = console or Console()

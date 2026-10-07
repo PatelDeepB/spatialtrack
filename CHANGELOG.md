@@ -6,6 +6,29 @@ This changelog helps track every modification, decision, and milestone.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - Phase 5: Pipeline Orchestration and Engine (Completed)
+
+### Added
+- **Unified Pipeline Engine (`src/spatialtrack/pipeline/engine.py`):**
+  - Implemented `SpatialTrackEngine` coordinating all pipeline stages: detection, ByteTrack tracking, homography projection, metric velocity estimation, zone monitoring, heatmaps, and dashboard compositing.
+  - Generator API `process_stream()` yielding typed `FrameResult` objects per frame.
+  - Runner method `run()` executing end-to-end processing with automated sink routing (video container, CSV, JSONL).
+  - Achieved 99% test coverage on engine orchestration.
+- **Context-Managed Video Writer (`src/spatialtrack/io/video_writer.py`):**
+  - Implemented `VideoWriter` wrapping OpenCV VideoWriter with directory creation, codec management, and dimension normalization.
+- **Interactive Calibration Tool (`src/spatialtrack/cli/calibration_cli.py`):**
+  - 4-point ground homography calibration wizard supporting interactive mouse picking and programmatic point strings.
+  - Matrix non-singularity and condition number checks.
+- **Standardized CPU Benchmark (`src/spatialtrack/cli/benchmark_cli.py`):**
+  - Latency and throughput benchmarking measuring per-stage percentiles across CPU thread counts.
+- **CLI Architecture Refactoring (`src/spatialtrack/cli/`):**
+  - Modularized into `main.py`, `runners.py`, `calibration_cli.py`, and `benchmark_cli.py`.
+  - Added `spatialtrack run`, `spatialtrack calibrate`, and `spatialtrack benchmark` commands.
+  - Every CLI file is kept under 240 lines with all functions under 35 lines.
+- **Automated Tests (`tests/`):**
+  - Added `test_video_writer.py`, `test_engine.py`, `test_calibration_cli.py`, `test_benchmark_cli.py`, and `test_full_pipeline.py`.
+  - Total passing tests increased to 64 with 89% code coverage.
+
 ## [0.4.0] - Phase 4: Analytics Engine and Event Detection (Completed)
 
 ### Added

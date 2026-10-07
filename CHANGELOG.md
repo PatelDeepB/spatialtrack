@@ -6,6 +6,24 @@ This changelog helps track every modification, decision, and milestone.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - Phase 6: Interactive Demo and Free Deployment (Completed)
+
+### Added
+- **Streamlit Web Application (`app/streamlit_app.py`):**
+  - Interactive web application running full spatial tracking pipeline on CPU.
+  - Dual-pane live display showing annotated camera stream and Bird's-Eye-View metric canvas.
+  - Real-time KPI metric cards: pipeline FPS, active tracks, speed violations, and stage latency.
+  - In-browser artifact downloads: processed MP4 video, telemetry CSV, and event JSONL files.
+- **Modular Web UI Components (`app/components/`):**
+  - `config_sidebar.py`: controls for video source selection (demo clip or custom upload), detection confidence, CPU threads, speed limit thresholds, and spatial heatmaps.
+  - `results_display.py`: KPI dashboard layout, pandas event log table, and export buttons.
+- **Multi-Stage Dockerfile (`Dockerfile`):**
+  - Production container build targeting Hugging Face Spaces free CPU tier (2 vCPUs, 16 GB RAM).
+  - Pre-downloads INT8 ONNX model at build time, configures non-root user permissions, and exposes port 7860 with health checks.
+- **Automated Unit Tests (`tests/unit/test_app_components.py`):**
+  - Tests covering sidebar configuration extraction, metric cards rendering, and layout headers.
+  - Total passing tests increased to 68 with 89% codebase coverage.
+
 ## [0.5.0] - Phase 5: Pipeline Orchestration and Engine (Completed)
 
 ### Added

@@ -1,0 +1,17 @@
+{
+  "source_points_px": [
+    [450.0, 280.0],
+    [850.0, 280.0],
+    [1150.0, 710.0],
+    [150.0, 710.0]
+  ],
+  "target_points_m": [
+    [0.0, 40.0],
+    [12.0, 40.0],
+    [12.0, 0.0],
+    [0.0, 0.0]
+  ],
+  "frame_width": 1280,
+  "frame_height": 720,
+  "description": "Highway sample road plane calibration (12m x 40m segment)"
+}

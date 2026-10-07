@@ -1,0 +1,55 @@
+detection:
+  model_path: "models/yolov10n_int8.onnx"
+  input_size: 640
+  confidence_threshold: 0.25
+  nms_iou_threshold: 0.45
+  target_classes:
+    - "car"
+    - "truck"
+    - "bus"
+    - "motorcycle"
+    - "bicycle"
+    - "person"
+  num_threads: 2
+
+tracking:
+  high_threshold: 0.6
+  low_threshold: 0.1
+  max_age: 30
+  min_hits: 3
+  iou_threshold: 0.3
+  max_trail_length: 50
+
+projection:
+  calibration_path: null
+  speed_smoothing_alpha: 0.3
+  min_displacement_m: 0.05
+
+analytics:
+  speed_limit_kmh: 60.0
+  speed_violation_debounce_frames: 5
+  enable_heatmap: true
+  heatmap_resolution: [200, 200]
+  heatmap_sigma: 5.0
+  zones_config_path: null
+
+visualization:
+  show_bboxes: true
+  show_trails: true
+  show_speed_labels: true
+  show_bev: true
+  trail_fade: true
+  bev_width: 400
+  bev_height: 600
+  font_scale: 0.6
+  line_thickness: 2
+
+output:
+  output_video_path: null
+  event_log_path: null
+  telemetry_csv_path: null
+  video_codec: "mp4v"
+  video_fps: null
+
+video_source: ""
+log_level: "INFO"

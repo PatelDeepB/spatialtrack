@@ -52,8 +52,8 @@ Where:
 - $(v_{cx}, v_{cy}, v_a, v_h)$ represent velocity components.
 
 #### Two-Stage Bipartite Association
-1. **Stage 1 (High-Confidence):** Matches track predictions with detections above `high_threshold` (0.6) using the Hungarian algorithm on pairwise IoU costs.
-2. **Stage 2 (Occlusion Recovery):** Matches remaining unconfirmed tracks with low-confidence detections (`low_threshold` 0.1 to 0.6). This allows the tracker to maintain ID persistence through heavy occlusions or motion blur without requiring expensive Re-ID deep neural networks.
+1. **Stage 1 (High-Confidence):** Matches track predictions with detections above `high_threshold` (0.35) using the Hungarian algorithm on pairwise IoU costs.
+2. **Stage 2 (Occlusion Recovery):** Matches remaining unconfirmed tracks with low-confidence detections (`low_threshold` 0.1 to 0.35). This allows the tracker to maintain ID persistence through heavy occlusions or motion blur without requiring expensive Re-ID deep neural networks.
 
 ### Stage 4: Planar Homography Projection
 Vehicles are physical 3D objects touching the ground plane. Measuring velocity from the bounding box center introduces severe projection errors due to vehicle height.

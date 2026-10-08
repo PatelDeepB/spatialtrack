@@ -45,8 +45,6 @@ All pull requests must satisfy our quality and style guidelines:
    - Write tests alongside new features.
    - Follow the AAA (Arrange, Act, Assert) testing pattern.
    - Target 85%+ code coverage.
-5. **No Em Dash Character:**
-   - Never use the em dash character ("—") in code, comments, or documentation. Use standard hyphens ("-") instead.
 
 ---
 
@@ -100,4 +98,3 @@ We enforce the Conventional Commits specification:
 - [ ] Code passes `mypy app src tests` with zero errors.
 - [ ] All unit and integration tests pass via `pytest`.
 - [ ] New features include corresponding unit tests.
-- [ ] Any modifications or additions are logged in `CHANGELOG.md`.

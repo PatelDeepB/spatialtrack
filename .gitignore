@@ -86,3 +86,8 @@ Thumbs.db
 # Output artifacts
 outputs/
 
+# Internal planning and changelog
+CHANGELOG.md
+IMPLEMENTATION_PLAN.md
+*.plan.md
+

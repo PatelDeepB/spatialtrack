@@ -150,7 +150,6 @@ Navigate to `http://localhost:7860` to access the application.
 - [Camera Calibration Guide](docs/calibration_guide.md): Illustrated guide for setting up 4-point planar homography.
 - [Architecture & Mathematical Foundations](docs/architecture.md): Derivation of Kalman filter state vectors, Hungarian bipartite cost matrices, and EMA velocity smoothing.
 - [Contributing Guidelines](CONTRIBUTING.md): Code quality rules, testing standards, and pull request procedures.
-- [Changelog](CHANGELOG.md): History of all features, enhancements, and releases.
 
 ---
 

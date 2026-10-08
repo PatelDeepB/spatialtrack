@@ -90,4 +90,6 @@ outputs/
 CHANGELOG.md
 IMPLEMENTATION_PLAN.md
 *.plan.md
+docs/codebase_walkthrough.md
+
 
